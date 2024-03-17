@@ -138,13 +138,24 @@
                         <td class="px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">{{ product.updated_at }}
                         </td>
                         <td class="px-4 py-2 opacity-0 group-hover:opacity-100">
-                            <Link :href="route('products.edit', { product })">
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
-                                viewBox="0 0 24 24">
-                                <path fill="currentColor"
-                                    d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15q.4 0 .775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z" />
-                            </svg>
-                            </Link>
+                            <div class="flex items-center space-x-2">
+                                <Link :href="route('products.edit', { product })">
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                                    viewBox="0 0 24 24">
+                                    <path fill="currentColor"
+                                        d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15q.4 0 .775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z" />
+                                </svg>
+                                </Link>
+                                <Link :href="route('products.show', { product })">
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                                    viewBox="0 0 48 48">
+                                    <g fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="4">
+                                        <path d="M24 36c11.046 0 20-12 20-12s-8.954-12-20-12S4 24 4 24s8.954 12 20 12Z" />
+                                        <path d="M24 29a5 5 0 1 0 0-10a5 5 0 0 0 0 10Z" />
+                                    </g>
+                                </svg>
+                                </Link>
+                            </div>
                         </td>
                     </tr>
                 </tbody>

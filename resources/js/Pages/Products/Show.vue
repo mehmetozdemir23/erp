@@ -1,8 +1,8 @@
 <template>
-    <AppHead title="`Product ${product.sku}`" />
+    <AppHead :title="product.name" />
     <AuthenticatedLayout>
         <Modal>
-            <div class="flex justify-between mb-4 rounded-t sm:mb-5">
+            <div class="flex justify-between items-start mb-4 rounded-t sm:mb-5">
                 <div class="text-lg text-gray-900 md:text-xl">
                     <h3 class="font-semibold mb-1">
                         {{ product.name }}
