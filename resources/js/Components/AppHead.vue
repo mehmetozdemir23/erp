@@ -1,5 +1,5 @@
 <template>
-    <Head :title="title ? `${title} - Laravel` : 'Laravel'">
+    <Head :title="title">
         <slot />
     </Head>
 </template>
