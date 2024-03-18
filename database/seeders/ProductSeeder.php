@@ -15,28 +15,13 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->createProducts();
-    }
-
-    public function createProducts(): void
-    {
-        $categories = ProductCategory::factory(2)->create();
-        $salesAgent = SalesAgent::factory()->for(User::factory())->create();
+        $categories = ProductCategory::all();
 
         foreach ($categories as $category) {
-            $products = Product::factory()
-                ->for($category, 'category')
-                ->has(ProductStock::factory(), 'stock')
-                ->count(20)
-                ->create();
-
-            foreach ($products as $product) {
-                Sale::factory()
-                    ->for(Customer::factory())
-                    ->for($salesAgent, 'agent')
-                    ->count(rand(1, 10))
-                    ->create(['product_id' => $product->id]);
-            }
+            Product::factory(10)->create([
+                'product_category_id' => $category->id,
+            ]);
         }
     }
+
 }
