@@ -112,8 +112,9 @@
                             {{ product.name }}
                         </th>
                         <td class="px-4 py-2">
-                            <span class="w-max bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">{{
-                        product.category.name }}</span>
+                            <span
+                                class="w-max bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">{{ product.category.name
+                                }}</span>
                         </td>
                         <td class="px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">
                             {{ product.stock.quantity }}
@@ -134,7 +135,7 @@
                                 </span>
                             </div>
                         </td>
-                        <td class="px-4 py-2">${{ (product.price * product.sales_count).toFixed(2) }}</td>
+                        <td class="px-4 py-2">${{ product.revenue ?? 0 }}</td>
                         <td class="px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">{{ product.updated_at }}
                         </td>
                         <td class="px-4 py-2 opacity-0 group-hover:opacity-100">
@@ -150,7 +151,8 @@
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
                                     viewBox="0 0 48 48">
                                     <g fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="4">
-                                        <path d="M24 36c11.046 0 20-12 20-12s-8.954-12-20-12S4 24 4 24s8.954 12 20 12Z" />
+                                        <path
+                                            d="M24 36c11.046 0 20-12 20-12s-8.954-12-20-12S4 24 4 24s8.954 12 20 12Z" />
                                         <path d="M24 29a5 5 0 1 0 0-10a5 5 0 0 0 0 10Z" />
                                     </g>
                                 </svg>

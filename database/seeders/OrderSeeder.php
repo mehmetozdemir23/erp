@@ -15,7 +15,7 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 15; $i++) {
             Order::factory()->create([
                 'product_id' => Product::inRandomOrder()->first()->id,
                 'customer_id' => Customer::inRandomOrder()->first()->id,

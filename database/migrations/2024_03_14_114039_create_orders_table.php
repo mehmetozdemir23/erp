@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained();            
             $table->foreignId('product_id')->constrained();
             $table->mediumInteger('quantity')->default(1);
+            $table->decimal('total_amount');
+            $table->string('status');
             $table->timestamps();
         });
     }

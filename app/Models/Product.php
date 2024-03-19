@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -32,7 +33,7 @@ class Product extends Model
     protected function updatedAt(): Attribute
     {
         return Attribute::make(
-            get: fn ($value) => Carbon::parse($value)->diffForHumans(),
+            get: fn($value) => Carbon::parse($value)->diffForHumans(),
         );
     }
 
@@ -46,9 +47,14 @@ class Product extends Model
         return $this->hasOne(ProductStock::class);
     }
 
-    public function sales(): HasMany
+    public function sales(): HasManyThrough
     {
-        return $this->hasMany(Sale::class);
+        return $this->hasManyThrough(Sale::class, Order::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
     }
 
     public function images(): HasMany
@@ -56,7 +62,7 @@ class Product extends Model
         return $this->hasMany(ProductImage::class);
     }
 
-    public function thumbnail()
+    public function thumbnail(): string
     {
         $firstImage = $this->images->first();
 

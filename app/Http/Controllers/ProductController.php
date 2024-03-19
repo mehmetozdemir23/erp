@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Sale;
@@ -40,11 +41,11 @@ class ProductController extends Controller
         $filters = $validatedData['filters'] ?? [];
 
         [$products, $updatedFilters] = $this->productService->getProductsForIndex($sortColumn, $sortOrder, $search, $filters);
-
+        
         return inertia('Products/Index', [
             'products' => $products,
             'productsCount' => Product::count(),
-            'totalSales' => Sale::sum('total_amount'),
+            'totalSales' => Order::sum('total_amount'),
             'selectedSortColumn' => $sortColumn,
             'selectedSortOrder' => $sortOrder,
             'filters' => $updatedFilters,
@@ -109,11 +110,7 @@ class ProductController extends Controller
 
         $productIds = explode(',', $products);
 
-        $productNames = implode(', ', Product::whereIn('id', $productIds)->pluck('name')->toArray());
-
         $this->productService->deleteProducts($productIds);
-
-        $flashMessage = "$productNames deleted successfully!";
 
         return to_route('products.index');
     }

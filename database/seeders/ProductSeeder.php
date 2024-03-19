@@ -18,7 +18,9 @@ class ProductSeeder extends Seeder
         $categories = ProductCategory::all();
 
         foreach ($categories as $category) {
-            Product::factory(10)->create([
+            Product::factory(10)
+            ->has(ProductStock::factory(),'stock')
+            ->create([
                 'product_category_id' => $category->id,
             ]);
         }

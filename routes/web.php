@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,11 @@ Route::middleware('auth')->group(function () {
         Route::put('{product}', [ProductController::class, 'update'])->name('update');
         Route::get('{product}/delete', [ProductController::class, 'confirmDelete'])->name('confirm-delete');
         Route::delete('{products}', [ProductController::class, 'destroyMany'])->name('destroyMany');
+    });
+
+    Route::group(['prefix' => 'orders', 'as' => 'orders.'], function () {
+
+        Route::get('', [OrderController::class, 'index'])->name('index');
     });
 });
 

@@ -25,6 +25,7 @@ class ProductIndexService
 
         $products = $productsQuery
             ->with(['stock:id,quantity,product_id', 'category:id,name', 'images'])
+            ->withSum('orders as revenue', 'total_amount')
             ->withCount(['sales'])
             ->paginate(7)
             ->withQueryString();
@@ -32,22 +33,22 @@ class ProductIndexService
         $products->getCollection()->transform(function ($product) {
             return $product->setAttribute('thumbnail', $product->thumbnail());
         });
-
+        
         return [$products, $updatedFilters];
     }
 
     protected function applySearch($query, $search)
     {
-        $query->where('products.name', 'LIKE', $search.'%');
+        $query->where('products.name', 'LIKE', $search . '%');
     }
 
     protected function applyFilters($query, $filters)
     {
-        if (isset($filters['category'])) {
+        if (isset ($filters['category'])) {
             $this->applyCategoryFilter($query, $filters['category']);
         }
 
-        if (isset($filters['price'])) {
+        if (isset ($filters['price'])) {
             $this->applyPriceFilter($query, $filters['price']);
         }
     }
@@ -86,7 +87,7 @@ class ProductIndexService
 
     protected function orderByCategoryName($query, $sortOrder = 'asc')
     {
-        if (! $this->isJoined($query, 'product_categories')) {
+        if (!$this->isJoined($query, 'product_categories')) {
             $query
                 ->join('product_categories', 'products.product_category_id', '=', 'product_categories.id');
 
@@ -145,7 +146,7 @@ class ProductIndexService
     protected function updateCategoryFilter($query)
     {
         $clonedQuery = $query->clone();
-        if (! $this->isJoined($query, 'product_categories')) {
+        if (!$this->isJoined($query, 'product_categories')) {
             $clonedQuery->join('product_categories', 'products.product_category_id', '=', 'product_categories.id');
         }
 
