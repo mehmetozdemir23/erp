@@ -42,9 +42,9 @@ class ProductFactory extends Factory
                 dd('image error');
             } else {
                 $imageName = Str::random(10);
-                $imagePath = "product_images/$product->id/$imageName.jpg";
+                $imagePath = "public/product_images/$product->id/$imageName.jpg";
                 Storage::put($imagePath, $imageContents);
-                $product->images()->create(['path' => basename($imagePath)]);
+                $product->images()->create(['path' => basename($imagePath), 'is_thumbnail' => true]);
             }
         });
     }

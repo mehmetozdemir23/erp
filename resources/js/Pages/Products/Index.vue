@@ -1,14 +1,18 @@
 <template>
     <AppHead title="Products" />
     <AuthenticatedLayout>
-        <section class="bg-gray-50 p-3 sm:p-5 antialiased">
-            <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
-                <div class="bg-white relative shadow-md sm:rounded-lg overflow-hidden">
-                    <ProductTable :products="products.data" :products-count="productsCount" :links="products.links"
-                        :total-sales="totalSales" :selected-sort-column="selectedSortColumn"
-                        :selected-sort-order="selectedSortOrder" :filters="filters" :selected-filters="selectedFilters"
-                        :search="search" />
+        <section class="bg-gray-50 antialiased">
+            <div class="mx-auto max-w-screen-xl">
+                <h1 class="text-2xl font-semibold">
+                    Products
+                </h1>
+                <div class="bg-white relative overflow-hidden">
+                    <ProductTable :products="products.data.data" :total-products="totalProducts"
+                        :pagination-links="products.meta.links" :total-revenue="totalRevenue" :sort-column="sortColumn"
+                        :sort-direction="sortDirection" :filters="filters" :selected-filters="selectedFilters"
+                        :searchInput="searchInput" />
                 </div>
+                <Pagination :links="links" :from="from" :to="to" :total="total" />
             </div>
         </section>
     </AuthenticatedLayout>
@@ -18,16 +22,18 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppHead from '@/Components/AppHead.vue';
 import ProductTable from '@/Pages/Products/Partials/Table.vue';
+import Pagination from '@/Components/Pagination.vue';
 
-defineProps({
+const props = defineProps({
     products: Object,
-    productsCount: Number,
-    totalSales: String,
-    selectedSortColumn: String,
-    selectedSortOrder: String,
+    totalProducts: Number,
+    totalRevenue: String,
+    sortColumn: String,
+    sortDirection: String,
     filters: Object,
     selectedFilters: Object,
-    search: String
+    searchInput: String
 });
 
+const { links, from, to, total } = props.products.meta;
 </script>

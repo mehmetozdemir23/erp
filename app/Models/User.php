@@ -70,10 +70,15 @@ class User extends Authenticatable
 
     public function permissions(): Collection
     {
-        return $this->roles()->with('permissions')->get()
-            ->map(function ($role) {
-                return $role->permissions->pluck('name');
-            })->flatten()->values()->unique();
+        return $this->roles()
+            ->with('permissions')
+            ->get()
+            ->map(
+                fn ($role) => $role->permissions->pluck('name')
+            )
+            ->flatten()
+            ->values()
+            ->unique();
     }
 
     public function hasPermission(string $permission): bool

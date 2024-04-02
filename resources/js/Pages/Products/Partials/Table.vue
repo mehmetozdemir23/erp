@@ -1,15 +1,14 @@
 <template>
-    <div class="relative overflow-hidden bg-white shadow-md sm:rounded-lg">
-        <div
-            class="flex flex-col px-4 py-3 space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 sm:space-x-4">
+    <div class="relative overflow-hidden bg-white">
+        <div class="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 sm:space-x-4">
             <div class="flex items-center flex-1 space-x-4">
                 <h5 class="flex flex-col lg:flex-row">
-                    <span class="text-gray-500">All Products: </span>
-                    <span class="dark:text-white">{{ productsCount }}</span>
+                    <span class="text-gray-500 mr-2">All Products:</span>
+                    <span class="dark:text-white">{{ totalProducts }}</span>
                 </h5>
                 <h5 class="flex flex-col lg:flex-row">
-                    <span class="text-gray-500">Total sales: </span>
-                    <span class="dark:text-white">${{ totalSales }}</span>
+                    <span class="text-gray-500 mr-2">Total Revenue:</span>
+                    <span class="dark:text-white">${{ totalRevenue }}</span>
                 </h5>
             </div>
             <div
@@ -46,7 +45,7 @@
                 </a>
             </div>
         </div>
-        <div class="flex flex-col sm:flex-row justify-between items-center lg:space-x-2 space-x-0 pl-2 pr-4 py-3">
+        <div class="flex flex-col sm:flex-row justify-between items-center">
             <label for="product-search" class="sr-only">Search products</label>
             <div class="relative w-full max-w-md">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -72,7 +71,7 @@
             <table class="w-full text-sm text-left text-gray-500">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
-                        <th scope="col" class="p-4">
+                        <th scope="col" class="p-3">
                             <div class="flex items-center">
                                 <input id="checkbox-all" type="checkbox" @change="selectAllProducts(products)"
                                     class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-blue-600 focus:ring-blue-500 focus:ring-2"
@@ -80,65 +79,59 @@
                                 <label for="checkbox-all" class="sr-only">checkbox</label>
                             </div>
                         </th>
-                        <TableColumn name="product" :is-current-sort="isSelectedSortColumn('products.name')"
-                            @sort="sortBy('products.name')" />
-                        <TableColumn name="category" :is-current-sort="isSelectedSortColumn('category.name')"
-                            @sort="sortBy('category.name')" />
-                        <TableColumn name="stock" :is-current-sort="isSelectedSortColumn('stock')"
-                            @sort="sortBy('stock')" />
-                        <TableColumn name="price" :is-current-sort="isSelectedSortColumn('price')"
-                            @sort="sortBy('price')" />
-                        <TableColumn name="sales" :is-current-sort="isSelectedSortColumn('sales')"
-                            @sort="sortBy('sales')" />
-                        <TableColumn name="revenue" :is-current-sort="isSelectedSortColumn('revenue')"
-                            @sort="sortBy('revenue')" />
-                        <TableColumn name="last update" :is-current-sort="isSelectedSortColumn('products.updated_at')"
-                            @sort="sortBy('products.updated_at')" />
+                        <TableColumn v-for="(column, index) in productTableColumns" :key="index"
+                            :name="column.displayName" :is-sort-column="isSortColumn(column.sortName)"
+                            @sort="sortBy(column.sortName)" />
                     </tr>
                 </thead>
                 <tbody v-if="products.length">
-                    <tr v-for="product in products" :key="product.id" class="border-b hover:bg-gray-100 group">
-                        <td class="w-4 px-4 py-3">
-                            <div class="flex items-center">
+                    <tr v-for="product in products" :key="product.id"
+                        class="hover:bg-gray-200 h-16" @click="selectProduct(product)">
+                        <td>
+                            <div class="flex justify-center items-center">
                                 <input id="checkbox-table-search-1" type="checkbox" onclick="event.stopPropagation()"
                                     class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-blue-600 focus:ring-blue-500 focus:ring-2"
                                     @change="selectProduct(product)" :checked="selectedProducts.includes(product)">
                                 <label for="checkbox-table-search-1" class="sr-only">checkbox</label>
                             </div>
                         </td>
-                        <th scope="row"
-                            class="w-max flex items-center px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">
-                            <img :src="product.thumbnail" alt="Product thumbnail" class="w-8 h-8 object-contain mr-3">
-                            {{ product.name }}
+                        <th scope="row">
+                            <div class="w-max flex items-center px-4 h-full font-semibold text-gray-900 whitespace-nowrap">
+                                <img v-if="product.thumbnailUrl" :src="product.thumbnailUrl" alt="Product thumbnail"
+                                    class="h-auto w-16 object-contain mr-6 rounded">
+                                <div v-else class="w-16">
+
+                                </div>
+                                {{ product.name }}
+                            </div>
                         </th>
                         <td class="px-4 py-2">
-                            <span
-                                class="w-max bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">{{ product.category.name
-                                }}</span>
+                            <span class="w-max bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">
+                                {{ product.categoryName }}
+                            </span>
                         </td>
                         <td class="px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">
-                            {{ product.stock.quantity }}
+                            {{ product.stock }}
                         </td>
                         <td class="px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">
                             ${{ product.price }}
                         </td>
                         <td class="px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">
                             <div class="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                    class="w-5 h-5 mr-2 text-gray-400" aria-hidden="true">
-                                    <path
-                                        d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 000-1.5H5.378A2.25 2.25 0 017.5 15h11.218a.75.75 0 00.674-.421 60.358 60.358 0 002.96-7.228.75.75 0 00-.525-.965A60.864 60.864 0 005.68 4.509l-.232-.867A1.875 1.875 0 003.636 2.25H2.25zM3.75 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM16.5 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z">
-                                    </path>
+                                <svg class="h-5 w-auto mr-1" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                                    viewBox="0 0 24 24">
+                                    <path fill="#777"
+                                        d="M7 22q-.825 0-1.412-.587T5 20q0-.825.588-1.412T7 18q.825 0 1.413.588T9 20q0 .825-.587 1.413T7 22m10 0q-.825 0-1.412-.587T15 20q0-.825.588-1.412T17 18q.825 0 1.413.588T19 20q0 .825-.587 1.413T17 22M5.2 4h14.75q.575 0 .875.513t.025 1.037l-3.55 6.4q-.275.5-.737.775T15.55 13H8.1L7 15h12v2H7q-1.125 0-1.7-.987t-.05-1.963L6.6 11.6L3 4H1V2h3.25z" />
                                 </svg>
                                 <span class="font-semibold text-[0.9rem]">
-                                    {{ product.sales_count }}
+                                    {{ product.salesCount }}
                                 </span>
                             </div>
                         </td>
-                        <td class="px-4 py-2">${{ product.revenue ?? 0 }}</td>
-                        <td class="px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">{{ product.updated_at }}
+                        <td class="px-4 py-2">${{ product.revenue }}</td>
+                        <td class="px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">{{ product.lastUpdate }}
                         </td>
-                        <td class="px-4 py-2 opacity-0 group-hover:opacity-100">
+                        <td class="px-4 py-2">
                             <div class="flex items-center space-x-2">
                                 <Link :href="route('products.edit', { product })">
                                 <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
@@ -177,22 +170,11 @@
                 </tbody>
             </table>
         </div>
-        <nav class="flex flex-col items-start justify-between p-4 space-y-3 md:flex-row md:items-center md:space-y-0"
-            aria-label="Table navigation">
-            <span class="text-sm font-normal text-gray-500">
-                Showing
-                <span class="font-semibold text-gray-900">1-10</span>
-                of
-                <span class="font-semibold text-gray-900">1000</span>
-            </span>
-            <Pagination :links="links" />
-        </nav>
     </div>
 </template>
 
 <script setup>
 import { Link } from '@inertiajs/vue3';
-import Pagination from '@/Components/Pagination.vue';
 import TableColumn from '@/Pages/Products/Partials/TableColumn.vue';
 import ProductFilter from '@/Pages/Products/Partials/Filter.vue';
 
@@ -201,16 +183,19 @@ import { useProductsFilter } from '@/Composables/useProductsFilter';
 import { useProducts } from '@/Composables/useProducts';
 import { useProductsSort } from '@/Composables/useProductsSort';
 
+import productTableColumns from '@/Enums/productTableColumns';
+import { onMounted } from 'vue';
+
 const props = defineProps({
     products: Array,
-    productsCount: Number,
-    totalSales: String,
-    links: Object,
-    selectedSortColumn: String,
-    selectedSortOrder: String,
+    totalProducts: Number,
+    totalRevenue: String,
+    paginationLinks: Object,
+    sortColumn: String,
+    sortDirection: String,
     filters: Object,
     selectedFilters: Object,
-    search: String
+    searchInput: String
 });
 
 const { searchInput } = useProductsSearch(props.search);
@@ -219,7 +204,7 @@ const { filters, selectedFilters, updateFilter } = useProductsFilter(props.filte
 
 const { selectedProducts, allProductsSelected, selectProduct, selectAllProducts, deleteProducts } = useProducts();
 
-const { isSelectedSortColumn, sortBy } = useProductsSort(props.selectedSortColumn, props.selectedSortOrder);
+const { isSortColumn, sortBy } = useProductsSort(props.sortColumn, props.sortDirection);
 
 
 </script>

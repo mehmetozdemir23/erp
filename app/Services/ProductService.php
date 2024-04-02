@@ -6,28 +6,107 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductImage;
 use App\Models\ProductStock;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductService
 {
-    public function __construct(public ProductIndexService $productIndexService)
-    {
+    public function searchAndFilter(
+        ?string $searchInput = null,
+        ?array $filters = null,
+        string $sortColumn = 'created_at',
+        string $sortDirection = 'asc'
+    ): LengthAwarePaginator {
+        $query = Product::with([
+            'orderItems.order:id,status',
+            'thumbnail:id,path,product_id',
+            'category:id,name',
+            'stock:id,product_id,quantity',
+        ]);
 
+        $this->applySearchFilter($query, $searchInput);
+        $this->applyCategoryFilter($query, $filters);
+        $this->applyPriceFilter($query, $filters);
+        $this->applySorting($query, $sortColumn, $sortDirection);
+
+        return $query->paginate(5)->withQueryString();
     }
 
-    public function getProductsForIndex(
-        $sortColumn,
-        $sortOrder,
-        $search,
-        $filters
-    ) {
-        return $this->productIndexService->getProducts(
-            $sortColumn,
-            $sortOrder,
-            $search,
-            $filters
-        );
+    protected function applySearchFilter($query, ?string $searchInput): void
+    {
+        if ($searchInput) {
+            $query->where('products.name', 'LIKE', $searchInput.'%');
+        }
+    }
+
+    protected function applyCategoryFilter($query, ?array $filters): void
+    {
+        $categoryFilter = $filters['category'] ?? null;
+        if ($categoryFilter && $categoryFilter !== 'all') {
+            $query->whereHas('category', function ($query) use ($categoryFilter) {
+                $query->where('name', $categoryFilter);
+            });
+        }
+    }
+
+    protected function applyPriceFilter($query, ?array $filters): void
+    {
+        $priceFilter = $filters['price'] ?? null;
+        if ($priceFilter && $priceFilter !== 'all') {
+            [$minPrice, $maxPrice] = explode('-', $priceFilter);
+            $query->whereBetween('price', [$minPrice, $maxPrice]);
+        }
+    }
+
+    protected function applySorting($query, string $sortColumn, string $sortDirection): void
+    {
+        if ($sortColumn === 'category') {
+            $query->join('product_categories', 'products.product_category_id', '=', 'product_categories.id')
+                ->orderBy('product_categories.name', $sortDirection)
+                ->select('products.*');
+        } elseif ($sortColumn === 'stock') {
+            $query->join('product_stocks', 'products.id', '=', 'product_stocks.product_id')
+                ->orderBy('quantity', $sortDirection)
+                ->select('products.*');
+        } elseif ($sortColumn === 'salesCount') {
+            $this->orderBySalesCount($query, $sortDirection);
+        } elseif ($sortColumn === 'revenue') {
+            $this->orderByRevenue($query, $sortDirection);
+        } else {
+            $query->orderBy($sortColumn, $sortDirection);
+        }
+    }
+
+    protected function orderBySalesCount($query, string $sortDirection = 'asc'): void
+    {
+        $query->withSum(
+            [
+                'orderItems as sales_count' => function ($query) {
+                    $query->select(DB::raw('sum(quantity)'))
+                        ->whereHas('order', function ($query) {
+                            $query->whereHas('sale');
+                        });
+                },
+            ],
+            'sales_count'
+        )->orderBy('sales_count', $sortDirection);
+    }
+
+    protected function orderByRevenue($query, string $sortDirection = 'asc'): void
+    {
+        $query->withSum(
+            [
+                'orderItems as sales_count' => function ($query) {
+                    $query->select(DB::raw('sum(quantity)'))
+                        ->whereHas('order', function ($query) {
+                            $query->whereHas('sale');
+                        });
+                },
+            ],
+            'sales_count'
+        )->orderByRaw("sales_count * price $sortDirection");
     }
 
     public function storeProduct(array $attributes)
@@ -77,5 +156,44 @@ class ProductService
                 $product->delete();
             }
         }
+    }
+
+    public function calculatePriceIntervals(array $products): array
+    {
+        $products = collect($products);
+
+        $minPrice = floor($products->min('price') / 10) * 10;
+        $maxPrice = ceil($products->max('price') / 10) * 10;
+
+        $intervalsCount = 5;
+        $intervalSize = ($maxPrice - $minPrice) / $intervalsCount;
+
+        $priceFilter = [];
+        for ($i = 0; $i < $intervalsCount; $i++) {
+            $lowerBound = $minPrice + $i * $intervalSize;
+            $upperBound = $lowerBound + $intervalSize;
+
+            $lowerBound = number_format($lowerBound, 2);
+            $upperBound = number_format($upperBound, 2);
+
+            $priceFilter[] = "$lowerBound-$upperBound";
+        }
+
+        return $priceFilter;
+    }
+
+    public function extractUniqueCategories(array $products): array
+    {
+        return collect($products)->pluck('category.name')->unique()->values()->toArray();
+    }
+
+    public function getTotalProductsCount(): int
+    {
+        return Product::count();
+    }
+
+    public function getTotalRevenue(): string
+    {
+        return Product::totalRevenue();
     }
 }

@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        Storage::deleteDirectory('product_images');
+        Storage::deleteDirectory('public/product_images');
 
         $this->call([
             PermissionSeeder::class,
@@ -22,7 +22,8 @@ class DatabaseSeeder extends Seeder
             ProductCategorySeeder::class,
             ProductSeeder::class,
             CustomerSeeder::class,
-            OrderSeeder::class
+            OrderSeeder::class,
+            SaleSeeder::class,
         ]);
     }
 }

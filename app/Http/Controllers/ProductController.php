@@ -4,14 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Models\Order;
+use App\Http\Resources\ProductCollection;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\Sale;
 use App\Services\ProductExportService;
 use App\Services\ProductService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Inertia\Response;
 
 class ProductController extends Controller
 {
@@ -24,38 +25,36 @@ class ProductController extends Controller
         return $this->productExportService->exportToExcel('test-file');
     }
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         Gate::authorize('product.viewAny');
 
-        $validatedData = $request->validate([
-            'sort_column' => ['nullable', 'string', 'in:products.name,category.name,stock,sales,price,revenue,products.updated_at'],
-            'sort_order' => ['nullable', 'in:asc,desc'],
-            'search' => ['nullable', 'string'],
-            'filters' => ['nullable', 'array'],
-        ]);
+        $searchInput = $request->input('search');
+        $selectedFilters = $request->input('filters');
+        $sortColumn = $request->input('sort_column', 'created_at');
+        $sortDirection = $request->input('sort_direction', 'asc');
 
-        $sortColumn = $validatedData['sort_column'] ?? 'products.created_at';
-        $sortOrder = $validatedData['sort_order'] ?? 'desc';
-        $search = $validatedData['search'] ?? '';
-        $filters = $validatedData['filters'] ?? [];
+        $products = $this->productService->searchAndFilter($searchInput, $selectedFilters, $sortColumn, $sortDirection);
 
-        [$products, $updatedFilters] = $this->productService->getProductsForIndex($sortColumn, $sortOrder, $search, $filters);
-        
+        $priceFilter = $this->productService->calculatePriceIntervals($products->items());
+        $categoryFilter = $this->productService->extractUniqueCategories($products->items());
+
+        $totalProducts = $this->productService->getTotalProductsCount();
+        $totalRevenue = $this->productService->getTotalRevenue();
+
         return inertia('Products/Index', [
-            'products' => $products,
-            'productsCount' => Product::count(),
-            'totalSales' => Order::sum('total_amount'),
-            'selectedSortColumn' => $sortColumn,
-            'selectedSortOrder' => $sortOrder,
-            'filters' => $updatedFilters,
-            'selectedFilters' => $filters,
-            'search' => $search,
+            'products' => new ProductCollection($products),
+            'totalProducts' => $totalProducts,
+            'totalRevenue' => $totalRevenue,
+            'searchInput' => $searchInput,
+            'filters' => ['price' => $priceFilter, 'category' => $categoryFilter],
+            'selectedFilters' => $selectedFilters,
+            'sortColumn' => $sortColumn,
+            'sortDirection' => $sortDirection,
         ]);
-
     }
 
-    public function create()
+    public function create(): Response
     {
         Gate::authorize('product.create');
 
@@ -64,7 +63,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductRequest $request): RedirectResponse
     {
         $validatedData = $request->validated();
 
@@ -73,14 +72,14 @@ class ProductController extends Controller
         return to_route('products.index');
     }
 
-    public function show(Product $product)
+    public function show(Product $product): Response
     {
         Gate::authorize('product.view');
 
         return inertia('Products/Show', compact('product'));
     }
 
-    public function edit(Product $product)
+    public function edit(Product $product): Response
     {
         Gate::authorize('product.update');
 
@@ -92,19 +91,19 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
         $this->productService->updateProduct($product, $request->validated());
 
         return to_route('products.index');
     }
 
-    public function confirmDelete(Product $product)
+    public function confirmDelete(Product $product): Response
     {
         return inertia('Products/Delete', compact('product'));
     }
 
-    public function destroyMany($products)
+    public function destroyMany($products): RedirectResponse
     {
         Gate::authorize('product.delete');
 

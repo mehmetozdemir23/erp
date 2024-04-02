@@ -35,10 +35,6 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'permissions' => $request->user()?->permissions(),
             ],
-            'productTableSort' => [
-                'column' => $request->query('column'),
-                'direction' => $request->query('direction'),
-            ],
         ];
     }
 }

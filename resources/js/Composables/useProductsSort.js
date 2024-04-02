@@ -1,36 +1,36 @@
 import { ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 
-export function useProductsSort(initialSortColumn, initialSortOrder) {
-    const selectedSortColumn = ref(initialSortColumn);
-    const selectedSortOrder = ref(initialSortOrder);
+export function useProductsSort(initialSortColumn, initialSortDirection) {
+    const sortColumn = ref(initialSortColumn);
+    const sortDirection = ref(initialSortDirection);
 
-    function isSelectedSortColumn(column) {
-        return selectedSortColumn.value === column;
+    function isSortColumn(column) {
+        return sortColumn.value === column;
     }
     function sortBy(column) {
-        selectedSortOrder.value =
-            selectedSortColumn.value === column
-                ? selectedSortOrder.value === "asc"
+        sortDirection.value =
+            sortColumn.value === column
+                ? sortDirection.value === "asc"
                     ? "desc"
                     : "asc"
                 : "asc";
-        selectedSortColumn.value = column;
+        sortColumn.value = column;
         router.get(
             route("products.index"),
             {
                 ...route().params,
-                sort_column: selectedSortColumn.value,
-                sort_order: selectedSortOrder.value,
+                sort_column: sortColumn.value,
+                sort_direction: sortDirection.value,
             },
             { preserveScroll: true }
         );
     }
 
     return {
-        selectedSortColumn,
-        selectedSortOrder,
-        isSelectedSortColumn,
+        sortColumn,
+        sortDirection,
+        isSortColumn,
         sortBy,
     };
 }

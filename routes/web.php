@@ -35,6 +35,8 @@ Route::middleware('auth')->group(function () {
     Route::group(['prefix' => 'orders', 'as' => 'orders.'], function () {
 
         Route::get('', [OrderController::class, 'index'])->name('index');
+        Route::get('{order}', [OrderController::class, 'show'])->name('show');
+        Route::put('{order}/status', [OrderController::class, 'updateStatus']);
     });
 });
 

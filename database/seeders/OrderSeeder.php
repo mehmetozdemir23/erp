@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class OrderSeeder extends Seeder
@@ -15,11 +15,19 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 0; $i < 15; $i++) {
-            Order::factory()->create([
-                'product_id' => Product::inRandomOrder()->first()->id,
+        $ordersCount = 15;
+        for ($i = 0; $i < $ordersCount; $i++) {
+            $order = Order::factory()->create([
                 'customer_id' => Customer::inRandomOrder()->first()->id,
             ]);
+
+            $itemsCount = rand(1, 3);
+            for ($j = 0; $j < $itemsCount; $j++) {
+                OrderItem::factory()->create([
+                    'product_id' => Product::inRandomOrder()->first()->id,
+                    'order_id' => $order->id,
+                ]);
+            }
         }
     }
 }
