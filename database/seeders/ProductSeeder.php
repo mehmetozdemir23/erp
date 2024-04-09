@@ -11,7 +11,6 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-
         $productsCount = 27;
 
         for ($i = 0; $i < $productsCount; $i++) {

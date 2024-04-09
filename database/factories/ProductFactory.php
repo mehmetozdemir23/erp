@@ -31,20 +31,23 @@ class ProductFactory extends Factory
         return $this->afterCreating(function (Product $product) {
             $url = 'https://picsum.photos/400/300';
 
-            $imageContents = file_get_contents($url, false, stream_context_create([
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                ],
-            ]));
+            for ($i = 0; $i < rand(1, 3); $i++) {
 
-            if ($imageContents === false) {
-                dd('image error');
-            } else {
-                $imageName = Str::random(10);
-                $imagePath = "public/product_images/$product->id/$imageName.jpg";
-                Storage::put($imagePath, $imageContents);
-                $product->images()->create(['path' => basename($imagePath), 'is_thumbnail' => true]);
+                $imageContents = file_get_contents($url, false, stream_context_create([
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                    ],
+                ]));
+
+                if ($imageContents === false) {
+                    dd('image error');
+                } else {
+                    $imageName = Str::random(10);
+                    $imagePath = "public/product_images/$product->id/$imageName.jpg";
+                    Storage::put($imagePath, $imageContents);
+                    $product->images()->create(['path' => basename($imagePath), 'is_thumbnail' => true]);
+                }
             }
         });
     }

@@ -1,0 +1,18 @@
+<template>
+    <div class="relative">
+        <img :src="imageSrc" alt="Image preview" class="w-32 h-32 rounded-lg object-cover" />
+        <button type="button" class="z-10 bg-gray-50 absolute bottom-1.5 left-1.5 p-1.5 rounded-md"
+            @click="emit('remove')">
+            <svg class="h-5 w-auto text-red-600" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                <path fill="currentColor"
+                    d="M17 4h5v2h-2v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6H2V4h5V2h10zM9 9v8h2V9zm4 0v8h2V9z" />
+            </svg>
+        </button>
+    </div>
+</template>
+<script setup>
+defineProps({
+    imageSrc: String
+});
+const emit = defineEmits(['remove']);
+</script>

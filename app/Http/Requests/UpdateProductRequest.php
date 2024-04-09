@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -27,10 +28,21 @@ class UpdateProductRequest extends FormRequest
             'name' => ['required', 'string', 'min:3', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
-            'newImages' => ['nullable', 'array'],
-            'newImages.*' => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'deletedImageIds' => ['nullable', 'array'],
-            'deletedImageIds.*' => ['exists:product_images,id'],
+            'category_id' => ['required', 'exists:product_categories,id'],
+            'thumbnail' => ['required', 'array'],
+            'thumbnail.type' => ['string', 'in:new,existing'],
+            'thumbnail.id' => [
+                'integer',
+                Rule::when(
+                    fn () => $this->input('thumbnail.type') === 'existing',
+                    'exists:product_images,id'
+                ),
+            ],
+            'uploadedImages' => ['nullable', 'array'],
+            'uploadedImages.*.id' => ['integer'],
+            'uploadedImages.*.file' => ['image', 'mimes:jpeg,png,jpg', 'max:5120'],
+            'removedImageIds' => ['nullable', 'array'],
+            'removedImageIds.*' => ['exists:product_images,id'],
         ];
     }
 
@@ -51,17 +63,25 @@ class UpdateProductRequest extends FormRequest
             'category_id.required' => 'Please select a category for the product.',
             'category_id.exists' => 'The selected category is invalid.',
 
-            'newImages.array' => 'The images must be provided in an array.',
-            'newImages.min' => 'Please upload at least :min image(s) of the product.',
-            'newImages.max' => 'You can upload up to :max images of the product.',
+            'thumbnail.required' => 'The thumbnail is required.',
+            'thumbnail.array' => 'The thumbnail must be an array.',
+            'thumbnail.type.string' => 'The thumbnail type must be a string.',
+            'thumbnail.type.in' => 'The selected thumbnail type is invalid.',
+            'thumbnail.id.integer' => 'The thumbnail ID must be an integer.',
+            'thumbnail.id.exists' => 'The selected thumbnail must exist in database.',
 
-            'newImages.*.required' => 'Each image must be provided.',
-            'newImages.*.image' => 'Please upload a valid image file.',
-            'newImages.*.mimes' => 'Incorrect file format for one or more images. Allowed formats: jpeg, png, jpg, gif.',
-            'newImages.*.max' => 'One or more images exceeds the maximum file size of :max kilobytes.',
+            'uploadedImages.array' => 'The images must be provided in an array.',
+            'uploadedImages.min' => 'Please upload at least :min image(s) of the product.',
+            'uploadedImages.max' => 'You can upload up to :max images of the product.',
 
-            'deletedImageIds' => 'The images to be deleted must be provided in an array.',
-            'deletedImageIds.*.exists' => 'Each image to be deleted must exist in database.',
+            'uploadedImages.*.required' => 'Each image must be provided.',
+            'uploadedImages.*.id' => 'Image id must be integer.',
+            'uploadedImages.*.file.image' => 'Please upload a valid image file.',
+            'uploadedImages.*.file.mimes' => 'Incorrect file format for one or more images. Allowed formats: jpeg, png, jpg.',
+            'uploadedImages.*.file.max' => 'One or more images exceeds the maximum file size of :max kilobytes.',
+
+            'removedImageIds.array' => 'The images to be deleted must be provided in an array.',
+            'removedImageIds.*.exists' => 'Each image to be deleted must exist in database.',
         ];
     }
 }

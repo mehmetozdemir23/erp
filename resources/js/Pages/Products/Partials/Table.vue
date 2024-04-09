@@ -107,7 +107,7 @@
                         </th>
                         <td class="px-4 py-2">
                             <span class="w-max bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">
-                                {{ product.categoryName }}
+                                {{ product.category.name }}
                             </span>
                         </td>
                         <td class="px-4 py-2 font-semibold text-gray-900 whitespace-nowrap">

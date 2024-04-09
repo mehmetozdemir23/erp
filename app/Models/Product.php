@@ -50,8 +50,13 @@ class Product extends Model
     protected function thumbnailUrl(): Attribute
     {
         return new Attribute(
-            get: fn () => "storage/product_images/{$this->id}/{$this->thumbnail->path}"
+            get: fn () => $this->getImageUrl($this->thumbnail)
         );
+    }
+
+    protected function getImageUrl(ProductImage $image): string
+    {
+        return "/storage/product_images/{$this->id}/{$image->path}";
     }
 
     protected function salesCount(): Attribute

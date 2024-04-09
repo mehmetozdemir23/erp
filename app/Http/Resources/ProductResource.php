@@ -17,13 +17,15 @@ class ProductResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'description' => $this->whenAppended('description'),
             'thumbnailUrl' => $this->thumbnail_url,
-            'categoryName' => $this->category->name,
+            'category' => $this->whenLoaded('category'),
             'stock' => $this->stock->quantity,
             'price' => $this->price,
             'salesCount' => $this->salesCount,
             'revenue' => $this->revenue,
             'lastUpdate' => $this->last_update,
+            'images' => $this->whenLoaded('images'),
         ];
     }
 }

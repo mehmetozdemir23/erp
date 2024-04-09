@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Services\ProductExportService;
@@ -83,10 +84,11 @@ class ProductController extends Controller
     {
         Gate::authorize('product.update');
 
-        $product->setAttribute('base64Images', $product->base64Images());
+        $product->load('images', 'category')
+            ->append('description');
 
         return inertia('Products/Edit', [
-            'product' => $product,
+            'product' => new ProductResource($product),
             'categories' => ProductCategory::get(['id', 'name']),
         ]);
     }

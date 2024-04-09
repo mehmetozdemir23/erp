@@ -132,20 +132,49 @@ class ProductService
     {
         $product->update($attributes);
 
-        $deletedImageIds = $attributes['deletedImageIds'] ?? [];
-        foreach ($deletedImageIds as $imageId) {
-            $imageModel = ProductImage::find($imageId);
-            if ($imageModel) {
-                Storage::delete("product_images/$product->id/$imageModel->path");
-                $imageModel->delete();
-            }
+        $removedImageIds = $attributes['removedImageIds'] ?? [];
+        foreach ($removedImageIds as $removedImageId) {
+            $this->deleteProductImage($product, $removedImageId);
         }
 
-        $newImages = $attributes['newImages'];
-        foreach ($newImages as $key => $image) {
-            $imageModel = new ProductImage(['path' => basename($image->storeAs("product_images/$product->id", Str::random(10).'.'.$image->extension()))]);
+        $this->uploadProductImages($product, $attributes['uploadedImages'] ?? []);
+
+        $this->setProductThumbnail($product, $attributes['thumbnail'] ?? []);
+
+    }
+
+    private function deleteProductImage(Product $product, $imageId)
+    {
+        $image = ProductImage::find($imageId);
+        if ($image) {
+            Storage::delete("public/product_images/{$product->id}/{$image->path}");
+            $image->delete();
+        }
+    }
+
+    private function uploadProductImages(Product $product, $uploadedImages)
+    {
+        foreach ($uploadedImages as $uploadedImage) {
+            $file = $uploadedImage['file'];
+            $imageModel = new ProductImage(['path' => basename($file->storeAs("public/product_images/{$product->id}", Str::random(10).'.'.$file->extension()))]);
             $product->images()->save($imageModel);
         }
+    }
+
+    private function setProductThumbnail(Product $product, $thumbnail)
+    {
+        $thumbnailType = $thumbnail['type'] ?? null;
+        $thumbnailId = $thumbnail['id'] ?? null;
+
+        if ($thumbnailType === 'new') {
+            $product->images()->where('id', $thumbnailId)->update(['is_thumbnail' => true]);
+            $product->images()->where('id', '!=', $thumbnailId)->update(['is_thumbnail' => false]);
+        } elseif ($thumbnailType === 'existing' && $product->thumbnail->id !== $thumbnailId) {
+            $product->images()->where('id', $thumbnailId)->update(['is_thumbnail' => true]);
+            $product->images()->where('id', '!=', $thumbnailId)->update(['is_thumbnail' => false]);
+        }
+
+        $product->refresh();
     }
 
     public function deleteProducts(array $productIds)

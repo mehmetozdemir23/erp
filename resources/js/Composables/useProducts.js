@@ -30,18 +30,16 @@ export function useProducts() {
     }
 
     function updateProduct(product, form) {
-        const newImages = form.newImages.map((image) => image.file);
-
         router.post(
             route("products.update", product),
             {
                 ...form.data(),
-                newImages,
                 _method: "put",
             },
             {
                 onError: (errors) => {
                     form.errors = errors;
+                    console.log(form.errors);
                 },
             }
         );
